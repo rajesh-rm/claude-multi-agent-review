@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # -------------------------------------------------------------------
-# install.sh — Install the four-engineer review kit
+# install.sh — Install the multi-agent review command
 #
 # Two modes:
 #
@@ -87,28 +87,26 @@ if [[ "$USER_WIDE" == true ]]; then
   DEST="$HOME/.claude"
 
   echo ""
-  echo "Installing four-engineer review kit (user-wide)"
+  echo "Installing multi-agent-review command (user-wide)"
   echo "Target: $DEST"
   echo "================================================="
   echo ""
   echo "This will be available in every repo you open with Claude Code."
   echo ""
 
-  echo "Skill:"
-  copy_file \
-    "$SCRIPT_DIR/.claude/skills/four-engineer-review/SKILL.md" \
-    "$DEST/skills/four-engineer-review/SKILL.md"
-
-  echo ""
   echo "Command:"
   copy_file \
     "$SCRIPT_DIR/.claude/commands/multi-agent-review.md" \
     "$DEST/commands/multi-agent-review.md"
 
-  # Clean up old command name (renamed from /review to /multi-agent-review)
+  # Clean up old artifacts from previous versions
   if [[ -f "$DEST/commands/review.md" ]]; then
     rm "$DEST/commands/review.md"
     echo "  CLEAN  Removed old $DEST/commands/review.md (renamed to multi-agent-review.md)"
+  fi
+  if [[ -d "$DEST/skills/four-engineer-review" ]]; then
+    rm -rf "$DEST/skills/four-engineer-review"
+    echo "  CLEAN  Removed old $DEST/skills/four-engineer-review/ (merged into command)"
   fi
 
   echo ""
@@ -146,26 +144,24 @@ if [[ ! -d "$TARGET/.git" ]]; then
 fi
 
 echo ""
-echo "Installing four-engineer review kit (per-repo)"
+echo "Installing multi-agent-review command (per-repo)"
 echo "Target: $TARGET"
 echo "================================================="
 echo ""
 
-echo "Skill:"
-copy_file \
-  "$SCRIPT_DIR/.claude/skills/four-engineer-review/SKILL.md" \
-  "$TARGET/.claude/skills/four-engineer-review/SKILL.md"
-
-echo ""
 echo "Command:"
 copy_file \
   "$SCRIPT_DIR/.claude/commands/multi-agent-review.md" \
   "$TARGET/.claude/commands/multi-agent-review.md"
 
-# Clean up old command name (renamed from /review to /multi-agent-review)
+# Clean up old artifacts from previous versions
 if [[ -f "$TARGET/.claude/commands/review.md" ]]; then
   rm "$TARGET/.claude/commands/review.md"
   echo "  CLEAN  Removed old $TARGET/.claude/commands/review.md (renamed to multi-agent-review.md)"
+fi
+if [[ -d "$TARGET/.claude/skills/four-engineer-review" ]]; then
+  rm -rf "$TARGET/.claude/skills/four-engineer-review"
+  echo "  CLEAN  Removed old $TARGET/.claude/skills/four-engineer-review/ (merged into command)"
 fi
 
 echo ""
