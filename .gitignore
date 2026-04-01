@@ -1,0 +1,6 @@
+# Review ledgers are per-target-repo, not part of this source repo
+.claude/review-ledger.md
+
+# OS files
+.DS_Store
+Thumbs.db
