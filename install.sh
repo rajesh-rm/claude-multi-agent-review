@@ -38,7 +38,7 @@ usage() {
   echo "  $0 ~/repos/my-api           # Single repo only"
   echo ""
   echo "After install, open Claude Code in any repo and run:"
-  echo "  /review src/your/target/path"
+  echo "  /multi-agent-review src/your/target/path"
   exit 1
 }
 
@@ -102,18 +102,24 @@ if [[ "$USER_WIDE" == true ]]; then
   echo ""
   echo "Command:"
   copy_file \
-    "$SCRIPT_DIR/.claude/commands/review.md" \
-    "$DEST/commands/review.md"
+    "$SCRIPT_DIR/.claude/commands/multi-agent-review.md" \
+    "$DEST/commands/multi-agent-review.md"
+
+  # Clean up old command name (renamed from /review to /multi-agent-review)
+  if [[ -f "$DEST/commands/review.md" ]]; then
+    rm "$DEST/commands/review.md"
+    echo "  CLEAN  Removed old $DEST/commands/review.md (renamed to multi-agent-review.md)"
+  fi
 
   echo ""
   echo "Done. Open Claude Code in any repo and run:"
   echo ""
-  echo "  /review src/your/target/path"
+  echo "  /multi-agent-review src/your/target/path"
   echo ""
   echo "The review ledger will be created per-repo at .claude/review-ledger.md"
   echo "on first run. Commit it to preserve state across sessions."
   echo ""
-  echo "The review process only runs when you explicitly type /review."
+  echo "The review process only runs when you explicitly type /multi-agent-review."
   echo "It will never auto-invoke during normal Claude Code usage."
   echo ""
 
@@ -153,22 +159,28 @@ copy_file \
 echo ""
 echo "Command:"
 copy_file \
-  "$SCRIPT_DIR/.claude/commands/review.md" \
-  "$TARGET/.claude/commands/review.md"
+  "$SCRIPT_DIR/.claude/commands/multi-agent-review.md" \
+  "$TARGET/.claude/commands/multi-agent-review.md"
+
+# Clean up old command name (renamed from /review to /multi-agent-review)
+if [[ -f "$TARGET/.claude/commands/review.md" ]]; then
+  rm "$TARGET/.claude/commands/review.md"
+  echo "  CLEAN  Removed old $TARGET/.claude/commands/review.md (renamed to multi-agent-review.md)"
+fi
 
 echo ""
 echo "Ledger:"
 if [[ -f "$TARGET/.claude/review-ledger.md" ]]; then
   echo "  SKIP  $TARGET/.claude/review-ledger.md (active ledger, never overwritten)"
 else
-  echo "  INFO  Ledger will be created automatically on first /review run"
+  echo "  INFO  Ledger will be created automatically on first /multi-agent-review run"
 fi
 
 echo ""
 echo "Done. Open Claude Code in $TARGET and run:"
 echo ""
-echo "  /review src/your/target/path"
+echo "  /multi-agent-review src/your/target/path"
 echo ""
-echo "The review process only runs when you explicitly type /review."
+echo "The review process only runs when you explicitly type /multi-agent-review."
 echo "It will never auto-invoke during normal Claude Code usage."
 echo ""

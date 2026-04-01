@@ -4,7 +4,7 @@ A structured code review system that uses four opinionated AI personas as a voti
 
 ## What It Does
 
-You type `/review src/some/path` in Claude Code. The orchestrator:
+You type `/multi-agent-review src/some/path` in Claude Code. The orchestrator:
 
 1. **Analyses** the target and classifies findings by severity (Tier 1: bugs/safety → Tier 2: structure → Tier 3: polish)
 2. **Proposes** 3–5 concrete changes for the highest-priority tier
@@ -22,8 +22,8 @@ Repeat rounds until termination (zero-pass round, diminishing returns, 7-round c
 No. The system is designed to never auto-invoke:
 
 - The skill has `disable-model-invocation: true` in its frontmatter, which prevents Claude from loading or using it unless you explicitly type the command.
-- The command only fires when you type `/review`.
-- There are no agent files in `.claude/agents/`. Agent files would auto-delegate based on description matching, so this kit deliberately avoids them. Instead, the four personas are defined as inline prompts inside the skill and spawned as isolated Tasks only when the `/review` command runs.
+- The command only fires when you type `/multi-agent-review`.
+- There are no agent files in `.claude/agents/`. Agent files would auto-delegate based on description matching, so this kit deliberately avoids them. Instead, the four personas are defined as inline prompts inside the skill and spawned as isolated Tasks only when the `/multi-agent-review` command runs.
 
 During normal Claude Code usage — coding, debugging, chatting — this system is completely inert.
 
@@ -32,15 +32,15 @@ During normal Claude Code usage — coding, debugging, chatting — this system 
 ### User-wide (recommended — one-time, works in every repo)
 
 ```bash
-git clone https://github.com/YOUR_ORG/four-engineer-review.git
-cd four-engineer-review
+git clone https://github.com/rajesh-rm/claude-multi-agent-review.git
+cd claude-multi-agent-review
 chmod +x install.sh
 ./install.sh --user
 ```
 
 This copies the skill and command to `~/.claude/`, which Claude Code loads in every repo you open. Each teammate runs this once and they're set.
 
-The review ledger is still created per-repo (at `.claude/review-ledger.md` in whatever repo you run `/review` in), since each codebase has its own review state.
+The review ledger is still created per-repo (at `.claude/review-ledger.md` in whatever repo you run `/multi-agent-review` in), since each codebase has its own review state.
 
 ### Per-repo (alternative — if you only want it in specific repos)
 
@@ -58,7 +58,7 @@ This copies the files into that repo's `.claude/` directory only. Useful if you 
   │   └── four-engineer-review/
   │       └── SKILL.md             # Process rules + four persona prompts
   └── commands/
-      └── review.md                # /review entry point
+      └── multi-agent-review.md    # /multi-agent-review entry point
 ```
 
 Two files. No agents, no hooks, no MCP servers, no background processes.
@@ -70,7 +70,7 @@ The install script will not overwrite existing files unless you pass `--force`. 
 Open Claude Code in the target repo and type:
 
 ```
-/review src/etl
+/multi-agent-review src/etl
 ```
 
 Replace `src/etl` with whatever path or module you want reviewed. The orchestrator handles everything from there.
@@ -116,7 +116,7 @@ git push origin v1.1.0
 - Ledger template (created automatically on first run)
 - Identity drift prevention rules
 
-**`.claude/commands/review.md`** — The `/review` slash command. This is the entry point that reads the skill and executes one round. It spawns each persona as a separate Task with its own context window, tallies votes, applies changes, and updates the ledger.
+**`.claude/commands/multi-agent-review.md`** — The `/multi-agent-review` slash command. This is the entry point that reads the skill and executes one round. It spawns each persona as a separate Task with its own context window, tallies votes, applies changes, and updates the ledger.
 
 **`.claude/review-ledger.md`** (created at runtime) — The live state tracker. Records applied changes (locked), deferred backlog, active debt register, round summaries, and anti-loop detections. Commit this to your repo to preserve state across sessions.
 
@@ -158,7 +158,7 @@ four-engineer-review/
 │   │   └── four-engineer-review/
 │   │       └── SKILL.md        # Process rules + persona prompts (the brain)
 │   └── commands/
-│       └── review.md           # /review entry point (the trigger)
+│       └── multi-agent-review.md # /multi-agent-review entry point (the trigger)
 ├── install.sh                  # Copies .claude/ into target repos
 └── README.md                   # This file
 ```

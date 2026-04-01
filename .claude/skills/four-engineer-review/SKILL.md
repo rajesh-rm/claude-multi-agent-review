@@ -2,7 +2,7 @@
 name: four-engineer-review
 description: >
   Structured four-engineer code review process with quorum voting.
-  Only invoke explicitly with /review. Never auto-invoke.
+  Only invoke explicitly with /multi-agent-review. Never auto-invoke.
 disable-model-invocation: true
 ---
 
