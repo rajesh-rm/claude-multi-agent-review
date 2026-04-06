@@ -1,3 +1,7 @@
+# Prevent skill files from accidentally being added to .claude/ (auto-loaded by Claude Code)
+.claude/commands/
+.claude/skills/
+
 # Review ledgers are per-target-repo, not part of this source repo
 .claude/review-ledger.md
 
