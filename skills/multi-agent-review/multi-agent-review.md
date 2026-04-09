@@ -1,6 +1,7 @@
 ---
+name: multi-agent-review
 description: Run a multi-agent code review round with quorum voting on a target path.
-allowed-tools: Read, Grep, Glob, Bash, Write, Edit, Task
+allowed-tools: Read Grep Glob Bash Write Edit Task
 argument-hint: <target-path-or-module>
 disable-model-invocation: true
 ---
