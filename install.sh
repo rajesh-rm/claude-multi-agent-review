@@ -64,7 +64,10 @@ while [[ $# -gt 0 ]]; do
     -h|--help) usage ;;
     -*) echo "Error: Unknown option: $1"; usage ;;
     *)
-      if [[ "$USER_WIDE" == false && -z "$TARGET" && -d "$1" ]]; then
+      if [[ -f "$SKILLS_DIR/$1/$1.md" ]]; then
+        # Argument matches a known skill name — treat as skill
+        SKILLS+=("$1")
+      elif [[ "$USER_WIDE" == false && -z "$TARGET" && -d "$1" ]]; then
         TARGET="$1"
       else
         SKILLS+=("$1")
@@ -132,10 +135,51 @@ copy_file() {
   echo "  COPY  $dst"
 }
 
+# Copy supporting files for a skill (lib/, README.md)
+copy_skill_extras() {
+  local skill="$1"
+  local skill_dest="$2"   # e.g., ~/.claude/skills/sast-scan
+
+  # Copy lib/ if it exists
+  local lib_dir="$SKILLS_DIR/$skill/lib"
+  if [[ -d "$lib_dir" ]]; then
+    while IFS= read -r -d '' lib_file; do
+      local rel_path="${lib_file#"$lib_dir/"}"
+      copy_file "$lib_file" "$skill_dest/lib/$rel_path"
+    done < <(find "$lib_dir" -type f -print0)
+
+    # Make shell scripts executable
+    find "$skill_dest/lib" -name '*.sh' -exec chmod +x {} \; 2>/dev/null || true
+  fi
+
+  # Copy README.md if it exists
+  if [[ -f "$SKILLS_DIR/$skill/README.md" ]]; then
+    copy_file "$SKILLS_DIR/$skill/README.md" "$skill_dest/README.md"
+  fi
+}
+
 cleanup_old_artifacts() {
   local dest="$1"
+  shift
+  local skills_to_clean=("$@")
 
-  # Remove artifacts from previous versions (can be removed in a future release)
+  # Remove old commands-format artifacts (pre-skills-format install)
+  for skill in "${skills_to_clean[@]}"; do
+    if [[ -f "$dest/commands/$skill.md" ]]; then
+      rm "$dest/commands/$skill.md"
+      echo "  CLEAN  Removed old $dest/commands/$skill.md"
+    fi
+    if [[ -d "$dest/lib/$skill" ]]; then
+      rm -rf "$dest/lib/$skill"
+      echo "  CLEAN  Removed old $dest/lib/$skill/"
+    fi
+  done
+
+  # Remove empty parent dirs
+  rmdir "$dest/commands" 2>/dev/null && echo "  CLEAN  Removed empty $dest/commands/" || true
+  rmdir "$dest/lib" 2>/dev/null && echo "  CLEAN  Removed empty $dest/lib/" || true
+
+  # Legacy artifacts from even earlier versions
   if [[ -f "$dest/commands/review.md" ]]; then
     rm "$dest/commands/review.md"
     echo "  CLEAN  Removed old $dest/commands/review.md"
@@ -162,16 +206,17 @@ if [[ "$USER_WIDE" == true ]]; then
     echo "[$skill]"
     copy_file \
       "$SKILLS_DIR/$skill/$skill.md" \
-      "$DEST/commands/$skill.md"
+      "$DEST/skills/$skill/SKILL.md"
+    copy_skill_extras "$skill" "$DEST/skills/$skill"
     echo ""
   done
 
-  cleanup_old_artifacts "$DEST"
+  cleanup_old_artifacts "$DEST" "${SKILLS[@]}"
 
   echo "Done. Installed ${#SKILLS[@]} skill(s). Run /skills in Claude Code to verify."
   echo ""
-  echo "The review process only runs when you explicitly type the command."
-  echo "It will never auto-invoke during normal Claude Code usage."
+  echo "Skills only run when you explicitly type the command."
+  echo "They will never auto-invoke during normal Claude Code usage."
   echo ""
 
   exit 0
@@ -206,11 +251,12 @@ for skill in "${SKILLS[@]}"; do
   echo "[$skill]"
   copy_file \
     "$SKILLS_DIR/$skill/$skill.md" \
-    "$TARGET/.claude/commands/$skill.md"
+    "$TARGET/.claude/skills/$skill/SKILL.md"
+  copy_skill_extras "$skill" "$TARGET/.claude/skills/$skill"
   echo ""
 done
 
-cleanup_old_artifacts "$TARGET/.claude"
+cleanup_old_artifacts "$TARGET/.claude" "${SKILLS[@]}"
 
 echo "Done. Installed ${#SKILLS[@]} skill(s). Run /skills in Claude Code to verify."
 echo ""

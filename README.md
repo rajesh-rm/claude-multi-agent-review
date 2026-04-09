@@ -7,6 +7,7 @@ A collection of skills and tools for [Claude Code](https://claude.com/claude-cod
 | Skill | Description |
 |-------|-------------|
 | [multi-agent-review](skills/multi-agent-review/README.md) | Four-persona code review with quorum voting and automatic convergence |
+| [sast-scan](skills/sast-scan/README.md) | SAST analysis with local SonarQube — setup, scan, fix, and converge to coverage target |
 
 ## Install
 
@@ -19,7 +20,7 @@ chmod +x install.sh
 ./install.sh --user
 ```
 
-This copies all skill commands to `~/.claude/commands/`, making them available in every repo.
+This installs all skills to `~/.claude/skills/`, making them available in every repo.
 
 ### A specific skill
 
@@ -57,17 +58,23 @@ git push origin v2.0.0
 ## Adding a New Skill
 
 1. Create `skills/<skill-name>/`
-2. Add `skills/<skill-name>/<skill-name>.md` — the command file with frontmatter (`description`, `allowed-tools`, `disable-model-invocation: true`)
+2. Add `skills/<skill-name>/<skill-name>.md` — the skill file with frontmatter (`name`, `description`, `allowed-tools` (space-separated), `disable-model-invocation: true`). Installed as `SKILL.md`.
 3. Add `skills/<skill-name>/README.md` — usage docs
-4. Update the skills table in this README
-5. Commit. The install script auto-discovers new skills — no script changes needed.
+4. Supporting files (helper scripts, etc.) go in `skills/<skill-name>/lib/` — reference them via `${CLAUDE_SKILL_DIR}/lib/` in the skill file
+5. Update the skills table in this README
+6. Commit. The install script auto-discovers new skills — no script changes needed.
 
 ## Repo Structure
 
 ```
-├── skills/                         # distributable skills (NOT auto-loaded by Claude Code)
-│   └── multi-agent-review/
-│       ├── multi-agent-review.md   # /multi-agent-review command
+├── skills/                         # source skills (NOT auto-loaded during development)
+│   ├── multi-agent-review/
+│   │   ├── multi-agent-review.md   # → ~/.claude/skills/multi-agent-review/SKILL.md
+│   │   └── README.md
+│   └── sast-scan/
+│       ├── sast-scan.md            # → ~/.claude/skills/sast-scan/SKILL.md
+│       ├── lib/
+│       │   └── sast-helpers.sh     # → ~/.claude/skills/sast-scan/lib/sast-helpers.sh
 │       └── README.md
 ├── install.sh                      # unified installer
 ├── .claude/                        # dev-only settings
@@ -77,4 +84,18 @@ git push origin v2.0.0
 └── README.md                       # this file
 ```
 
-Skills live under `skills/`, not `.claude/`, so they are never loaded into the dev session when working on this repo.
+After `./install.sh --user`, the installed layout is:
+
+```
+~/.claude/skills/
+├── multi-agent-review/
+│   ├── SKILL.md
+│   └── README.md
+└── sast-scan/
+    ├── SKILL.md
+    ├── lib/
+    │   └── sast-helpers.sh
+    └── README.md
+```
+
+Skills live under `skills/` in the repo (not `.claude/`), so they are never loaded during development.
